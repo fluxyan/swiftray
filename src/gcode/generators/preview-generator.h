@@ -21,25 +21,13 @@ public:
   }
 
   void moveTo(float x, float y, float speed, float power) override {
-    if (relative_mode_) {
-      if (x != 0) {
-        x_ = x_ + x;
-      }
-      if (y != 0) {
-        y_ = y_ + y;
-      }
-      if (x == 0 && y == 0 && speed_ == speed && power_ == power) {
-        return;
-      }
-    } else {
-      if (x_ == x && y_ == y && speed_ == speed && power_ == power)
-        return;
-      if (x_ != x) {
-        x_ = x;
-      }
-      if (y_ != y) {
-        y_ = y;
-      }
+    if (x_ == x && y_ == y && speed_ == speed && power_ == power)
+      return;
+    if (x_ != x) {
+      x_ = x;
+    }
+    if (y_ != y) {
+      y_ = y;
     }
     if (speed_ != speed) {
       speed_ = speed;
@@ -48,6 +36,7 @@ public:
       power_ = power;
     }
     paths_ << Path(QPointF(x_, y_), speed_, power_);
+    str_stream_ << std::endl;
   }
 
   void setLaserPower(float power) override {
@@ -63,11 +52,9 @@ public:
   }
 
   void useAbsolutePositioning() override {
-    relative_mode_ = false;
   }
 
   void useRelativePositioning() override {
-    relative_mode_ = true;
   }
 
   void home() override {
@@ -80,6 +67,5 @@ public:
     return paths_;
   }
 
-  bool relative_mode_;
   QList<Path> paths_;
 };
