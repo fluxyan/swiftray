@@ -55,7 +55,6 @@ private:
   QPixmap layer_bitmap_;            // place the filled geometry & image (excluding unfilled path)
   LayerPtr current_layer_;
   std::unique_ptr<QPainter> layer_painter_;
-
   BaseGenerator *gen_;
   float dpmm_;
   float travel_speed_;
