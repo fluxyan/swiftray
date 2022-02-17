@@ -39,7 +39,7 @@ void MaintenanceController::laser() {
     qInfo() << "laser off!";
     is_laser_on_ = false;
   } else {
-    job_str = "$X\nM3\nG1F1000\nG1S10";
+    job_str = "$X\nM3\nG1F1000\nG1S1";
     is_laser_on_ = true;
     qInfo() << "laser on!";
   }
