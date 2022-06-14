@@ -1,0 +1,10 @@
+dyld: Symbol not found: __ZTTNSt3__119basic_ostringstreamIcNS_11char_traitsIcEENS_9allocatorIcEEEE
+  Referenced from: /Users/gary.chiu/Documents/GitHub/swiftray/Crashpad/Tools/MacOS/dump_syms (which was built for Mac OS X 12.3)
+  Expected in: /usr/lib/libc++.1.dylib
+ in /Users/gary.chiu/Documents/GitHub/swiftray/Crashpad/Tools/MacOS/dump_syms
+/Users/gary.chiu/Documents/GitHub/swiftray/Crashpad/Tools/MacOS/symbols.sh: line 8:  8662 Abort trap: 6           /Users/gary.chiu/Documents/GitHub/swiftray/Crashpad/Tools/MacOS/dump_syms -g Swiftray.app.dSYM /Users/gary.chiu/Documents/GitHub/build-swiftray-Desktop_Qt_5_15_2_clang_64bit-Debug/Swiftray.app/Contents/MacOS/Swiftray > Swiftray.sym
+dyld: Symbol not found: __ZTTNSt3__119basic_ostringstreamIcNS_11char_traitsIcEENS_9allocatorIcEEEE
+  Referenced from: /Users/gary.chiu/Documents/GitHub/swiftray/Crashpad/Tools/MacOS/symupload (which was built for Mac OS X 12.3)
+  Expected in: /usr/lib/libc++.1.dylib
+ in /Users/gary.chiu/Documents/GitHub/swiftray/Crashpad/Tools/MacOS/symupload
+/Users/gary.chiu/Documents/GitHub/swiftray/Crashpad/Tools/MacOS/symbols.sh: line 9:  8663 Abort trap: 6           /Users/gary.chiu/Documents/GitHub/swiftray/Crashpad/Tools/MacOS/symupload "Swiftray.sym" "https://fred.bugsplat.com/post/bp/symbol/breakpadsymbols.php?appName=Swiftray&appVer=1.0"
