@@ -98,7 +98,7 @@ void GrblJob::resume() {
 void GrblJob::stop() {
   qInfo() << "[SerialPort] Write Reset";
   serial_port.write(QString{"\x18"});
-  emit startTimeoutTimer(5000); // set a timeout in case the machine stops responding
+  Q_EMIT startTimeoutTimer(5000); // set a timeout in case the machine stops responding
 }
 
 /**
@@ -110,7 +110,7 @@ void GrblJob::run() {
 
   // 1. Check whether the serial port is open (connected)
   if (!serial_port.isOpen()) {
-    emit error(tr("Serial port not connected"));
+    Q_EMIT error(tr("Serial port not connected"));
     mutex_.unlock();
     setStatus(Status::STOPPED);
     return;
@@ -145,7 +145,7 @@ void GrblJob::run() {
       wait_countdown--;
       if (wait_countdown == 0) {
         // timeout
-        emit error(tr("Serial port not responding"));
+        Q_EMIT error(tr("Serial port not responding"));
         setStatus(Status::STOPPED);
         throw "STOPPED TIMEOUT";
       } else {
@@ -157,7 +157,7 @@ void GrblJob::run() {
     rcvd_mutex_.unlock();
 
     // Start streaming g-code to grbl
-    emit startRealTimeStatusTimer(1000);
+    Q_EMIT startRealTimeStatusTimer(1000);
     setStatus(Status::RUNNING);
     msleep(500);
     uint32_t l_count = 0;     // sent line count
@@ -189,11 +189,11 @@ void GrblJob::run() {
               || timeout_occurred_
               || port_disconnected_) {
         if (port_disconnected_) {
-          emit error(tr("Serial port disconnected"));
+          Q_EMIT error(tr("Serial port disconnected"));
           setStatus(Status::STOPPED);
           throw "STOPPED PORT_DISCONNECTED";
         } else if (timeout_occurred_) {
-          emit error(tr("Serial port not responding"));
+          Q_EMIT error(tr("Serial port not responding"));
           setStatus(Status::STOPPED);
           throw "STOPPED TIMEOUT";
         }
@@ -232,7 +232,7 @@ void GrblJob::run() {
             last_alarm_code_ = static_cast<AlarmCode>(code);
           }
           if (last_alarm_code_ != AlarmCode::kAbortCycle) { // No need to show message in abort cycle alarm
-            emit error(tr("Alarm code: ") + QString::number(static_cast<int>(last_alarm_code_)));
+            Q_EMIT error(tr("Alarm code: ") + QString::number(static_cast<int>(last_alarm_code_)));
           }
           setStatus(Status::ALARM);
           throw "ALARM";
@@ -263,9 +263,9 @@ void GrblJob::run() {
           // ======== FLUX's dedicated response ========
           qInfo() << out_temp;
           if (out_temp.contains("act")) {
-            emit error(tr("Machine is paused by drop or collision."));
+            Q_EMIT error(tr("Machine is paused by drop or collision."));
           } else if (out_temp.contains("tilt")) {
-            emit error(tr("Machine is paused by tilt."));
+            Q_EMIT error(tr("Machine is paused by tilt."));
           }
           setStatus(Status::PAUSED);
         } else {
@@ -285,19 +285,19 @@ void GrblJob::run() {
         qInfo() << getElapsedTime().toString("hh:mm:ss");
         progress_value_ = 100 * QTime{0, 0}.secsTo(getElapsedTime()) / QTime{0, 0}.secsTo(getTotalRequiredTime());
       }
-      emit progressChanged(progress_value_);
-      emit elapsedTimeChanged(getElapsedTime());
+      Q_EMIT progressChanged(progress_value_);
+      Q_EMIT elapsedTimeChanged(getElapsedTime());
 
     }
 
     // All GCode have been sent, wait until all responses have been received.
     while (l_count > g_count) {
       if (port_disconnected_) {
-        emit error(tr("Serial port disconnected"));
+        Q_EMIT error(tr("Serial port disconnected"));
         setStatus(Status::STOPPED);
         throw "STOPPED PORT_DISCONNECTED";
       } else if (timeout_occurred_) {
-        emit error(tr("Serial port not responding"));
+        Q_EMIT error(tr("Serial port not responding"));
         setStatus(Status::STOPPED);
         throw "STOPPED TIMEOUT";
       }
@@ -349,8 +349,8 @@ void GrblJob::run() {
     }
 
     progress_value_ = 100;
-    emit stopTimeoutTimer();
-    emit stopRealTimeStatusTimer();
+    Q_EMIT stopTimeoutTimer();
+    Q_EMIT stopRealTimeStatusTimer();
     // Possible final state: FINISHED
     disconnect(&serial_port, &SerialPort::lineReceived, this, &GrblJob::onResponseReceived);
     setStatus(Status::FINISHED);
@@ -358,8 +358,8 @@ void GrblJob::run() {
   } catch (...) { // const std::exception& e
     // NOTE: error signal has been emitted before throwing exception
     progress_value_ = 0;
-    emit stopTimeoutTimer();
-    emit stopRealTimeStatusTimer();
+    Q_EMIT stopTimeoutTimer();
+    Q_EMIT stopRealTimeStatusTimer();
     disconnect(&serial_port, &SerialPort::lineReceived, this, &GrblJob::onResponseReceived);
     if (status() == Status::ALARM) {
       setStatus(Status::ALARM_STOPPED);
@@ -400,7 +400,7 @@ void GrblJob::gcodeCmdNonblockingSend(std::string cmd) {
   // WARNING: MUST change comm state before send
   gcode_cmd_comm_state_ = GcodeCmdCommState::kWaitingResp;
   serial_port.write(cmd);
-  //emit startWaiting(kGrblTimeout);
+  //Q_EMIT startWaiting(kGrblTimeout);
   planner_block_unexecuted_count_++; // only gcode cmd might be added to planner block
 }
 

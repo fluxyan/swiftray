@@ -103,13 +103,13 @@ public:
 
   static QList<QTime> calcRequiredTime(QStringList gcode_list, QProgressDialog* progress_dialog);
 
-signals:
+Q_SIGNALS:
   void startTimeoutTimer(int);
   void stopTimeoutTimer();
   void startRealTimeStatusTimer(int);
   void stopRealTimeStatusTimer();
 
-private slots:
+private Q_SLOTS:
 
   // NOTE: To modify the data member in QThread object, we should use a slot instead of changing it directly
   void timeout();

@@ -20,10 +20,10 @@ public:
 
   ~JoggingPanel();
 
-signals:
+Q_SIGNALS:
   void panelShow(bool is_show);
   
-public slots:
+public Q_SLOTS:
   void laser();
 
   void laserPulse();

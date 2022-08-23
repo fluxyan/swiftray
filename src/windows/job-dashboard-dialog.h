@@ -24,12 +24,12 @@ public:
 
     void attachJob(BaseJob *job);
 
-public slots:
+public Q_SLOTS:
     void onStatusChanged(BaseJob::Status);
     void onProgressChanged(QVariant);
     void onElapsedTimeChanged(QTime);
 
-signals:
+Q_SIGNALS:
     void startBtnClicked();
     void stopBtnClicked();
     void pauseBtnClicked();

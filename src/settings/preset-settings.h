@@ -92,7 +92,7 @@ public:
   QList<Preset> presets_;
   int current_index_ = 0;
 
-signals:
+Q_SIGNALS:
   void currentIndexChanged();
 
 private:

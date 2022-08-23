@@ -220,11 +220,11 @@ void JoggingPanel::setControlEnable(bool control_enable) {
 }
 
 void JoggingPanel::hideEvent(QHideEvent *event) {
-  emit panelShow(false);
+  Q_EMIT panelShow(false);
 }
 
 void JoggingPanel::showEvent(QShowEvent *event) {
-  emit panelShow(true);
+  Q_EMIT panelShow(true);
 }
 
 void JoggingPanel::sendJob(QString &job_str) {

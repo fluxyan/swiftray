@@ -30,7 +30,7 @@ private:
 
   bool is_high_speed_;
 
-signals:
+Q_SIGNALS:
   void speedModeChanged(bool is_high_speed);
 
   void fontSizeChanged(int font_size);

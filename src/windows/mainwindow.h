@@ -51,7 +51,7 @@ public:
 
   MachineSettings::MachineSet currentMachine();
 
-signals:
+Q_SIGNALS:
 
   void presetSettingsChanged();
 
@@ -59,13 +59,13 @@ signals:
 
   void toolbarTransformChanged(double x, double y, double r, double w, double h);
 
-public slots:
+public Q_SLOTS:
   void onStartNewJob();
   void onStopJob();
   void onPauseJob();
   void onResumeJob();
 
-private slots:
+private Q_SLOTS:
 
   void canvasLoaded(QQuickWidget::Status status);
 

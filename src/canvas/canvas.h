@@ -98,7 +98,7 @@ public:
 
   void setMode(Mode mode);
 
-public slots:
+public Q_SLOTS:
 
   void editCut();
 
@@ -266,7 +266,7 @@ private:
 protected:
   CanvasTextEdit *text_input_;
 
-signals:
+Q_SIGNALS:
 
   void canvasContextMenuOpened();
 

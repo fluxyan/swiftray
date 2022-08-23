@@ -25,7 +25,7 @@ public:
 
   QString getMachineName();
 
-signals:
+Q_SIGNALS:
   void machineChanged(QString machine_name);
 
 private:

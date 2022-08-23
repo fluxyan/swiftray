@@ -35,7 +35,7 @@ PreferencesWindow::PreferencesWindow(QWidget *parent) :
       msgbox.setInformativeText(tr("Please restart Swiftray to enable new settings."));
       msgbox.exec();
     }
-    emit speedModeChanged(ui->comboBoxSpeedOptimization->currentIndex());
+    Q_EMIT speedModeChanged(ui->comboBoxSpeedOptimization->currentIndex());
   });
   connect(ui->horizontalSliderFontSize, &QAbstractSlider::valueChanged, [=](int value){
     ui->labelFontSize->setText(QString::number(value));

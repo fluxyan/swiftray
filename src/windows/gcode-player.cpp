@@ -30,9 +30,9 @@ void GCodePlayer::registerEvents() {
   connect(ui->pauseBtn, &QAbstractButton::clicked, [=]() {
     // Pause / Resume
     if (status_ == BaseJob::Status::RUNNING) {
-      emit pauseBtnClicked();
+      Q_EMIT pauseBtnClicked();
     } else {
-      emit resumeBtnClicked();
+      Q_EMIT resumeBtnClicked();
     }
   });
   connect(ui->exportBtn, &QAbstractButton::clicked, this, &GCodePlayer::exportGcode);
@@ -56,11 +56,11 @@ void GCodePlayer::registerEvents() {
 }
 
 void GCodePlayer::hideEvent(QHideEvent *event) {
-  emit panelShow(false);
+  Q_EMIT panelShow(false);
 }
 
 void GCodePlayer::showEvent(QShowEvent *event) {
-  emit panelShow(true);
+  Q_EMIT panelShow(true);
 }
 
 void GCodePlayer::checkGenerateGcode() {
@@ -131,7 +131,7 @@ void GCodePlayer::onStatusChanged(BaseJob::Status new_status) {
     default:
       break;
   }
-  emit jobStatusReport(new_status);
+  Q_EMIT jobStatusReport(new_status);
 }
 
 void GCodePlayer::onProgressChanged(QVariant progress) {

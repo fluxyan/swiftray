@@ -58,11 +58,11 @@ void JobDashboardDialog::registerEvents() {
         status_ == BaseJob::Status::FINISHED ||
         status_ == BaseJob::Status::ALARM_STOPPED ||
         status_ == BaseJob::Status::STOPPED) {
-      emit startBtnClicked(); // try to start a new job
+      Q_EMIT startBtnClicked(); // try to start a new job
     } else if (status_ == BaseJob::Status::RUNNING) {
-      emit pauseBtnClicked();
+      Q_EMIT pauseBtnClicked();
     } else if (status_ == BaseJob::Status::PAUSED) {
-      emit resumeBtnClicked();
+      Q_EMIT resumeBtnClicked();
     }
   });
   connect(ui->stopBtn, &QToolButton::clicked, this, &JobDashboardDialog::stopBtnClicked);
@@ -127,7 +127,7 @@ void JobDashboardDialog::onStatusChanged(BaseJob::Status status) {
     default:
       break;
   }
-  emit jobStatusReport(status);
+  Q_EMIT jobStatusReport(status);
 }
 
 void JobDashboardDialog::onProgressChanged(QVariant progress) {

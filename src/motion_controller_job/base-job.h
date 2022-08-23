@@ -51,7 +51,7 @@ public:
   quint64 getFinishedCmdCnt() { return finished_cmd_cnt_; }
   inline quint64 getFinishedCmdIdx() { return finished_cmd_cnt_ == 0 ? 0 : (finished_cmd_cnt_ - 1); }
 
-signals:
+Q_SIGNALS:
 
   void error(const QString &);
   void statusChanged(BaseJob::Status);

@@ -32,7 +32,7 @@ public:
 
   void attachJob(BaseJob *job);
 
-public slots:
+public Q_SLOTS:
   void onStatusChanged(BaseJob::Status);
   void onProgressChanged(QVariant);
   
@@ -53,7 +53,7 @@ private:
   BaseJob::Status status_;
   BaseJob *job_;
 
-signals:
+Q_SIGNALS:
   void exportGcode();
 
   void importGcode();
