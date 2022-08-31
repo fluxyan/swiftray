@@ -16,8 +16,8 @@ TARGET = Swiftray
 #Application version
 VERSION_MAJOR = 1
 VERSION_MINOR = 0
-VERSION_BUILD = 0
-VERSION_SUFFIX = -beta.6 # beta
+VERSION_BUILD = 1
+VERSION_SUFFIX = "" # beta
 DEFINES += "VERSION_MAJOR=$$VERSION_MAJOR"\
        "VERSION_MINOR=$$VERSION_MINOR"\
        "VERSION_BUILD=$$VERSION_BUILD"
@@ -30,8 +30,8 @@ win32-msvc {
 }
 
 QMAKE_INFO_PLIST = Info.plist
-ICON=images/icon.icns
-RC_ICONS = images/icon.ico
+ICON=resources/images/icon.icns
+RC_ICONS = resources/images/icon.ico
 CONFIG += c++17
 CONFIG += no_keywords
 
@@ -202,7 +202,7 @@ SOURCES += \
     $$files(src/canvas/controls/*.cpp) \
     $$files(src/connection/*.cpp) \
     $$files(src/connection/QAsyncSerial/*.cpp) \
-    $$files(src/gcode/*.cpp) \
+    $$files(src/toolpath_exporter/*.cpp) \
     $$files(src/motion_controller_job/*.cpp) \
     $$files(src/parser/*.cpp) \
     $$files(src/settings/*.cpp) \
@@ -254,7 +254,7 @@ HEADERS += \
     $$files(src/canvas/controls/*.h) \
     $$files(src/connection/*.h) \
     $$files(src/connection/QAsyncSerial/*.h) \
-    $$files(src/gcode/*.h) \
+    $$files(src/toolpath_exporter/*.h) \
     $$files(src/motion_controller_job/*.h) \
     $$files(src/parser/*.h) \
     $$files(src/parser/generators/*.h) \
@@ -264,7 +264,7 @@ HEADERS += \
     $$files(src/widgets/panels/*.h) \
     $$files(src/widgets/components/*.h) \
     $$files(src/windows/*.h) \
-    src/gcode/generators/dirty-area-outline-generator.h \
+    src/toolpath_exporter/generators/dirty-area-outline-generator.h \
     $$files(third_party/QxPotrace/include/qxpotrace.h) \
     third_party/clipper/clipper.hpp \
     third_party/libdxfrw/drw_base.h \
@@ -324,7 +324,8 @@ FORMS += \
     src/widgets/panels/image-panel.ui \
     src/widgets/components/color-picker-button.ui \
     src/windows/image-crop-dialog.ui \
-    src/windows/image-sharpen-dialog.ui
+    src/windows/image-sharpen-dialog.ui \
+    src/windows/privacy_window.ui
 ios {
 OBJECTIVE_SOURCES += src/widgets/components/ios-image-picker.mm
 } else {

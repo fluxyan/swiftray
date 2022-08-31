@@ -21,10 +21,10 @@
 #include <widgets/components/canvas-text-edit.h>
 #include <windows/mainwindow.h>
 #include <windows/osxwindow.h>
-#include <gcode/toolpath-exporter.h>
-#include <gcode/generators/gcode-generator.h>
-#include <gcode/generators/preview-generator.h>
-#include <gcode/generators/dirty-area-outline-generator.h>
+#include <toolpath_exporter/toolpath-exporter.h>
+#include <toolpath_exporter/generators/gcode-generator.h>
+#include <toolpath_exporter/generators/preview-generator.h>
+#include <toolpath_exporter/generators/dirty-area-outline-generator.h>
 #include <document-serializer.h>
 #include <settings/file-path-settings.h>
 #include <windows/preview-window.h>
@@ -82,6 +82,42 @@ void MainWindow::loadSettings() {
   setWindowFilePath(FilePathSettings::getDefaultFilePath());
   setWindowTitle(tr("Untitled") + " - Swiftray");
   current_filename_ = tr("Untitled");
+
+  // Launch Crashpad with Sentry
+  options_ = sentry_options_new();
+  QString database_path = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/sentry-native";
+  sentry_options_set_database_path(options_, database_path.toStdString().c_str());
+  sentry_options_set_dsn(options_, "https://f27889563d3b4cefb80c5afaca760fdb@o28957.ingest.sentry.io/6586888");
+  #ifdef Q_OS_MACOS
+  //qInfo() << "Crashpad path" << QCoreApplication::applicationDirPath().append("/../Resources/crashpad_handler");
+  sentry_options_set_handler_path(options_,
+      QCoreApplication::applicationDirPath().toStdString().append("/crashpad_handler").c_str());
+  #else
+  //qInfo() << "Crashpad path" << QCoreApplication::applicationDirPath().append("/crashpad_handler.exe");
+  sentry_options_set_handler_path(options_,
+      QCoreApplication::applicationDirPath().toStdString().append("/crashpad_handler.exe").c_str());
+  #endif
+  // sentry_options_set_debug(options_, 1); // More details for debug
+  sentry_options_set_release(options_,
+      std::string("Swiftray@")
+      .append(std::to_string(VERSION_MAJOR))
+      .append(std::to_string(VERSION_MINOR))
+      .append(std::to_string(VERSION_BUILD))
+      .append(VERSION_SUFFIX)
+      .c_str()
+  );
+  sentry_options_set_require_user_consent(options_, true);
+  sentry_init(options_);
+  QSettings privacy_settings;
+  QVariant upload_code = privacy_settings.value("window/upload", 0);
+  is_upload_enable_ = upload_code.toBool();
+  if(is_upload_enable_) {
+    sentry_user_consent_give();
+  }
+  else {
+    sentry_user_consent_revoke();
+  }
+  preferences_window_->setUpload(is_upload_enable_);
 }
 
 void MainWindow::loadCanvas() {
@@ -135,8 +171,8 @@ void MainWindow::loadCanvas() {
 
 void MainWindow::loadStyles() {
   QFile file(isDarkMode() ?
-             ":/styles/swiftray-dark.qss" :
-             ":/styles/swiftray-light.qss");
+             ":/resources/styles/swiftray-dark.qss" :
+             ":/resources/styles/swiftray-light.qss");
   file.open(QFile::ReadOnly);
   QString styleSheet = QLatin1String(file.readAll());
   setStyleSheet(styleSheet);
@@ -157,11 +193,11 @@ void MainWindow::loadStyles() {
     for (QAction *action : toolbar->actions()) {
       auto name = action->objectName().mid(6).toLower();
       action->setIcon(QIcon(
-           (isDarkMode() ? ":/images/dark/icon-" : ":/images/icon-") + name
+           (isDarkMode() ? ":/resources/images/dark/icon-" : ":/resources/images/icon-") + name
       ));
     }
   }
-  ui->actionStart_2->setIcon(QIcon((isDarkMode() ? ":/images/dark/icon-start.png" : ":/images/icon-start.png")));
+  ui->actionStart_2->setIcon(QIcon((isDarkMode() ? ":/resources/images/dark/icon-start.png" : ":/resources/images/icon-start.png")));
 }
 
 /**
@@ -725,6 +761,7 @@ void MainWindow::loadWidgets() {
   preferences_window_ = new PreferencesWindow(this);
   about_window_ = new AboutWindow(this);
   welcome_dialog_ = new WelcomeDialog(this);
+  privacy_window_ = new PrivacyWindow(this);
   ui->joggingDock->setWidget(jogging_panel_);
   ui->objectParamDock->setWidget(transform_panel_);
   ui->serialPortDock->setWidget(gcode_player_);
@@ -874,6 +911,16 @@ void MainWindow::registerEvents() {
   connect(welcome_dialog_, &WelcomeDialog::settingsChanged, [=]() {
     Q_EMIT machineSettingsChanged();
   });
+  connect(welcome_dialog_, &WelcomeDialog::finished, [=](int result) {
+    QSettings privacy_settings;
+    QVariant newstart_code = privacy_settings.value("window/newstart", 0);
+    if(!newstart_code.toInt()) {
+      privacy_window_->show();
+      privacy_window_->activateWindow();
+      privacy_window_->raise();
+      privacy_settings.setValue("window/newstart", 1);
+    }
+  });
   connect(ui->actionExportGcode, &QAction::triggered, this, &MainWindow::exportGCodeFile);
   connect(ui->actionPreview, &QAction::triggered, this, &MainWindow::genPreviewWindow);
   connect(canvas_, &Canvas::cursorChanged, [=](Qt::CursorShape cursor) {
@@ -893,13 +940,36 @@ void MainWindow::registerEvents() {
   connect(gcode_player_, &GCodePlayer::stopBtnClicked, this, &MainWindow::onStopJob);
   connect(gcode_player_, &GCodePlayer::jobStatusReport, this, &MainWindow::setJobStatus);
   connect(&serial_port, &SerialPort::connected, [=]() {
-    ui->actionConnect->setIcon(QIcon(isDarkMode() ? ":/images/dark/icon-link.png" : ":/images/icon-link.png"));
+    ui->actionConnect->setIcon(QIcon(isDarkMode() ? ":/resources/images/dark/icon-link.png" : ":/resources/images/icon-link.png"));
   });
   connect(&serial_port, &SerialPort::disconnected, [=]() {
-    ui->actionConnect->setIcon(QIcon(isDarkMode() ? ":/images/dark/icon-unlink.png" : ":/images/icon-unlink.png"));
+    ui->actionConnect->setIcon(QIcon(isDarkMode() ? ":/resources/images/dark/icon-unlink.png" : ":/resources/images/icon-unlink.png"));
   });
   connect(preferences_window_, &PreferencesWindow::speedModeChanged, [=](bool is_high_speed) {
     is_high_speed_mode_ = is_high_speed;
+  });
+  connect(preferences_window_, &PreferencesWindow::privacyUpdate, [=](bool enable_upload) {
+    is_upload_enable_ = enable_upload;
+    if(is_upload_enable_) {
+      sentry_user_consent_give();
+    }
+    else {
+      sentry_user_consent_revoke();
+    }
+    QSettings settings;
+    settings.setValue("window/upload", is_upload_enable_);
+  });
+  connect(privacy_window_, &PrivacyWindow::privacyUpdate, [=](bool enable_upload) {
+    is_upload_enable_ = enable_upload;
+    if(is_upload_enable_) {
+      sentry_user_consent_give();
+    }
+    else {
+      sentry_user_consent_revoke();
+    }
+    preferences_window_->setUpload(is_upload_enable_);
+    QSettings settings;
+    settings.setValue("window/upload", is_upload_enable_);
   });
   connect(doc_panel_, &DocPanel::machineChanged, [=](QString machine_name) {
     std::size_t found = machine_name.toStdString().find("Lazervida");
@@ -1147,7 +1217,7 @@ void MainWindow::setConnectionToolBar() {
   portComboBox_->setSizeAdjustPolicy(QComboBox::AdjustToContents);
   ui->toolBarConnection->insertWidget(ui->actionConnect, portComboBox_);
   ui->toolBarConnection->insertWidget(ui->actionConnect, baudComboBox_);
-  ui->actionConnect->setIcon(QIcon(isDarkMode() ? ":/images/dark/icon-unlink.png" : ":/images/icon-unlink.png"));
+  ui->actionConnect->setIcon(QIcon(isDarkMode() ? ":/resources/images/dark/icon-unlink.png" : ":/resources/images/icon-unlink.png"));
   QTimer *timer = new QTimer(this);
   QList<QSerialPortInfo> portList;
   baudComboBox_->addItem("9600");
@@ -1221,9 +1291,9 @@ void MainWindow::setToolbarFont() {
         border: none \
     } \
   ");
-  boldToolButton->setIcon(QIcon(isDarkMode() ? ":/images/dark/icon-bold.png" : ":/images/icon-bold.png"));
-  italicToolButton->setIcon(QIcon(isDarkMode() ? ":/images/dark/icon-I.png" : ":/images/icon-I.png"));
-  underlineToolButton->setIcon(QIcon(isDarkMode() ? ":/images/dark/icon-U.png" : ":/images/icon-U.png"));
+  boldToolButton->setIcon(QIcon(isDarkMode() ? ":/resources/images/dark/icon-Bold.png" : ":/resources/images/icon-Bold.png"));
+  italicToolButton->setIcon(QIcon(isDarkMode() ? ":/resources/images/dark/icon-I.png" : ":/resources/images/icon-I.png"));
+  underlineToolButton->setIcon(QIcon(isDarkMode() ? ":/resources/images/dark/icon-U.png" : ":/resources/images/icon-U.png"));
   boldToolButton->setCheckable(true);
   italicToolButton->setCheckable(true);
   underlineToolButton->setCheckable(true);
@@ -1413,7 +1483,7 @@ void MainWindow::setToolbarTransform() {
       } \
   ");
   ui->toolBarTransform->setIconSize(QSize(16, 16));
-  buttonLock->setIcon(QIcon(isDarkMode() ? ":/images/dark/icon-unlock.png" : ":/images/icon-unlock.png"));
+  buttonLock->setIcon(QIcon(isDarkMode() ? ":/resources/images/dark/icon-unlock.png" : ":/resources/images/icon-unlock.png"));
   buttonLock->setCheckable(true);
   labelX->setText("X");
   labelY->setText("Y");
@@ -1515,9 +1585,9 @@ void MainWindow::setToolbarTransform() {
     buttonLock->setChecked(scale_locked);
 
     if (scale_locked) {
-      buttonLock->setIcon(QIcon(isDarkMode() ? ":/images/dark/icon-lock.png" : ":/images/icon-lock.png"));
+      buttonLock->setIcon(QIcon(isDarkMode() ? ":/resources/images/dark/icon-lock.png" : ":/resources/images/icon-lock.png"));
     } else {
-      buttonLock->setIcon(QIcon(isDarkMode() ? ":/images/dark/icon-unlock.png" : ":/images/icon-unlock.png"));
+      buttonLock->setIcon(QIcon(isDarkMode() ? ":/resources/images/dark/icon-unlock.png" : ":/resources/images/icon-unlock.png"));
     }
   });
 
@@ -1618,10 +1688,10 @@ void MainWindow::setScaleBlock() {
   plusBtn_ = new QToolButton(ui->quickWidget);
   scale_block_->setGeometry(ui->quickWidget->geometry().left() + 60, this->size().height() - 150, 50, 30);
   scale_block_->setStyleSheet("QPushButton { border: none; } QPushButton::hover { border: none; background-color: transparent }");
-  minusBtn_->setIcon(QIcon(isDarkMode() ? ":/images/dark/icon-minus.png" : ":/images/icon-minus.png"));
+  minusBtn_->setIcon(QIcon(isDarkMode() ? ":/resources/images/dark/icon-minus.png" : ":/resources/images/icon-minus.png"));
   minusBtn_->setGeometry(ui->quickWidget->geometry().left() + 30, this->size().height() - 150, 40, 30);
   minusBtn_->setStyleSheet("QToolButton { border: none; } QToolButton::hover { border: none; background-color: transparent }");
-  plusBtn_->setIcon(QIcon(isDarkMode() ? ":/images/dark/icon-plus.png" : ":/images/icon-plus.png"));
+  plusBtn_->setIcon(QIcon(isDarkMode() ? ":/resources/images/dark/icon-plus.png" : ":/resources/images/icon-plus.png"));
   plusBtn_->setGeometry(ui->quickWidget->geometry().left() + 100, this->size().height() - 150, 40, 30);
   plusBtn_->setStyleSheet("QToolButton { border: none; } QToolButton::hover { border: none; background-color: transparent }");
 

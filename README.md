@@ -1,7 +1,7 @@
 <p align="center">
   <img
     alt="swiftray library logo"
-    src="images/icon.png"
+    src="resources/images/icon.png"
     height="300"
     style="margin-top: 20px; margin-bottom: 20px;"
   />
@@ -34,6 +34,10 @@ Swiftray is a free and open-sourced software for grbl-based laser cutters and en
 - libiconv (Windows)
 - icu4c (MacOS)
 
+NOTE: For Mac M1, you need to build Qt 5.15
+
+See process [here](https://github.com/bobwolff68/fritzing-app/wiki/Building-Qt-5.15-for-Mac-M1)
+
 ## Setup
 ### Clone the repo and checkout submodules
 ```
@@ -53,7 +57,7 @@ cmake -B build -S . \
 cmake --build build --config RelWithDebInfo --parallel
 cmake --install build --prefix install
 ```
-NOTE: For Windows MSVC, you need to resolve the source code encoding issue of crashpad first
+NOTE: For Windows MSVC(2019), you need to resolve the source code encoding issue of crashpad first
 
 See discussions [here](https://github.com/microsoft/vcpkg/issues/21888)
 
