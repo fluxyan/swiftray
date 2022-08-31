@@ -16,6 +16,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_OSX_DEPLOYMENT_TARGET 11.0)
 #set(CMAKE_CXX_FLAGS "-O2")
 
+add_definitions(-DQT_NO_KEYWORDS)
 # Add additional FindXXX.cmake for the project
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 #set(CMAKE_FIND_DEBUG_MODE 1)
@@ -31,6 +32,8 @@ if (MINGW)
 endif()
 
 get_filename_component(SRC_DIR "src" REALPATH)
+
+#include(cmake/external_libraries)
 
 include_directories(
   third_party
@@ -156,6 +159,66 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   target_link_libraries(${PROJECT_NAME} 
     ${CMAKE_SOURCE_DIR}/third_party/sentry-native/install/lib/libsentry.dylib
+  )
+else()
+  # TODO: Linux
+endif()
+
+# Cairo
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  target_include_directories(${PROJECT_NAME} PRIVATE
+    ${CMAKE_SOURCE_DIR}/third_party/cairo/win/include
+  )
+  target_link_libraries(${PROJECT_NAME}
+    ${CMAKE_SOURCE_DIR}/third_party/cairo/win/lib/x64/cairo.lib
+  )
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  target_include_directories(${PROJECT_NAME} PRIVATE
+    /usr/local/opt/cairo/include
+  )
+  target_link_libraries(${PROJECT_NAME} 
+    /usr/local/opt/cairo/lib/libcairo.a
+  )
+else()
+  # TODO: Linux
+endif()
+
+# GLIB
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  target_include_directories(${PROJECT_NAME} PRIVATE
+    ${CMAKE_SOURCE_DIR}/third_party/glib/Library/include/glib-2.0
+    ${CMAKE_SOURCE_DIR}/third_party/glib/Library/lib/glib-2.0/include
+  )
+  target_link_libraries(${PROJECT_NAME}
+    ${CMAKE_SOURCE_DIR}/third_party/glib/Library/lib/glib-2.0.lib
+    ${CMAKE_SOURCE_DIR}/third_party/glib/Library/lib/gobject-2.0.lib
+  )
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  target_include_directories(${PROJECT_NAME} PRIVATE
+    /usr/local/opt/glib/include/glib-2.0
+  )
+  target_link_libraries(${PROJECT_NAME} 
+    /usr/local/opt/glib/lib/libglib-2.0.a
+    /usr/local/opt/glib/lib/libgobject-2.0.a
+  )
+else()
+  # TODO: Linux
+endif()
+
+# Poppler
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  target_include_directories(${PROJECT_NAME} PRIVATE
+    ${CMAKE_SOURCE_DIR}/third_party/poppler/poppler-22.04.0/Library/include/poppler/glib
+  )
+  target_link_libraries(${PROJECT_NAME}
+    ${CMAKE_SOURCE_DIR}/third_party/poppler/poppler-22.04.0/Library/lib/poppler-glib.lib
+  )
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  target_include_directories(${PROJECT_NAME} PRIVATE
+    /usr/local/opt/poppler/include/poppler/glib
+  )
+  target_link_libraries(${PROJECT_NAME} 
+    /usr/local/opt/poppler/lib/libpoppler-glib.a
   )
 else()
   # TODO: Linux
